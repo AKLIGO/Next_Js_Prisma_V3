@@ -1,6 +1,11 @@
-import { PrismaClient } from "@prisma/client/extension";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient } from "./generated/prisma/client";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaBetterSqlite3({
+    url: process.env.DATABASE_URL ?? "file:./dev.db",
+});
+
+const prisma = new PrismaClient({ adapter });
 
 const seedProducts = async () =>{
     const count = await prisma.product.count();
@@ -9,22 +14,22 @@ const seedProducts = async () =>{
         await prisma.product.createMany({
             data: [
                 {
-                    name: "Product 1",
+                    title: "Product 1",
                     description: "Description for product 1",
-                    price: 19.99,
+                    price: 20,
 
                 },
 
                 {
-                    name: "Product 2",
+                    title: "Product 2",
                     description: "Description for product 2",
-                    price: 29.99,
+                    price: 30,
                 },
 
                 {
-                    name: "Product 3",
+                    title: "Product 3",
                     description: "Description for product 3",
-                    price: 39.99,
+                    price: 40,
                 },
             ]
         });
@@ -48,25 +53,25 @@ export async function getProductById(id: number) {
 }
 
 
-export async function createProduct(name: string, description: string, price: number) {
+export async function createProduct(title: string, description: string, price: number) {
     await new Promise((resolve)=> setTimeout(resolve,1500));
     return prisma.product.create({
         data: {
-            name,
+            title,
             description,
             price,
         },
     });
 }
 
-export async function updateProduct(id: number, name: string, description: string, price: number) {
+export async function updateProduct(id: number, title: string, description: string, price: number) {
     await new Promise((resolve)=> setTimeout(resolve,1500));
     return prisma.product.update({
         where: {
             id,
         },
         data: {
-            name,
+            title,
             description,
             price,
         },
