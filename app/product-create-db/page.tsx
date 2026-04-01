@@ -1,18 +1,8 @@
+"use client";
 
-import { createProduct as createProductInDb } from "../prisma-db";
-import { submitProduct as SubmitProduct } from "@/component/submit";
-import {redirect} from "next/navigation";
 import { useActionState } from "react";
 
-type Errors = {
-    title?: string;
-    description?: string;
-    price?: string;
-};
-
-type FormState = {
-    errors: Errors;
-};
+import { createProductAction, FormState } from "@/Actions/products";
 
 export default function AddProductPage(){
 
@@ -22,34 +12,7 @@ export default function AddProductPage(){
 
     const [state, formAction, isPending] = useActionState(createProductAction,initialState);
 
-        async function createProductAction(formData: FormData){
-
-            "use server";
-            const title = formData.get("title") as string;
-            const description = formData.get("description") as string;
-            const price = parseInt(formData.get("price") as string, 10);
-
-            const errors: Errors = {};
-
-            if(!title){
-                errors.title = "Title is required";
-            }
-            if(!description){
-                errors.description = "Description is required";
-            }
-            if(isNaN(price) || price < 0){
-                errors.price = "Price must be a positive number";
-            }
-
-            if(Object.keys(errors).length > 0){
-                return {
-                    errors,
-                };
-            }
-            
-            await createProductInDb(title, description, price);
-            redirect("/product-db");
-        }
+        
     
 
     return (
