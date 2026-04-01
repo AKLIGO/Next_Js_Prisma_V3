@@ -193,3 +193,80 @@ Si demain tu changes de base, de regles metier, ou de format de reponse, tu modi
 
 - Standard web clair :
 Le flux suit une architecture robuste : Formulaire -> POST API -> Service Prisma -> Reponse JSON.
+
+## Processus de creation cote serveur (Server Action)
+
+Tu as maintenant une deuxieme facon de creer un produit, 100% cote serveur, dans [app/product-create-db/page.tsx](app/product-create-db/page.tsx).
+
+Flux global :
+- Le formulaire HTML envoie directement les donnees a une Server Action (sans fetch manuel).
+- La Server Action lit FormData, convertit les valeurs, puis appelle [app/prisma-db.ts](app/prisma-db.ts).
+- Une fois le produit cree, Next.js redirige vers /product-db.
+
+### Etape par etape
+
+1. L’utilisateur remplit les champs title, description, price dans [app/product-create-db/page.tsx](app/product-create-db/page.tsx).
+2. Au submit, la balise form utilise action={createProductAction}.
+3. Next.js execute createProductAction sur le serveur grace a "use server".
+4. La Server Action lit les valeurs avec formData.get(...).
+5. Le prix est converti en nombre entier via parseInt(..., 10).
+6. La fonction appelle await createProductInDb(title, description, price).
+7. createProductInDb est la fonction importee depuis [app/prisma-db.ts](app/prisma-db.ts), qui fait le prisma.product.create(...).
+8. Apres succes, redirect("/product-db") envoie l’utilisateur vers la liste des produits.
+
+### Explication ligne par ligne de app/product-create-db/page.tsx
+
+Fichier : [app/product-create-db/page.tsx](app/product-create-db/page.tsx)
+
+1. Importe createProduct sous alias createProductInDb.
+Pourquoi : evite le conflit de nom avec la fonction locale createProductAction.
+
+2. Importe redirect depuis next/navigation.
+Pourquoi : permet une navigation serveur apres insertion reussie.
+
+3. Exporte le composant AddProductPage.
+Pourquoi : c’est la page Next.js rendue sur la route correspondante.
+
+4. Declare async function createProductAction(formData: FormData).
+Pourquoi : c’est la Server Action reliee directement au form.
+
+5. "use server" au debut de la fonction.
+Pourquoi : force l’execution de cette fonction sur le serveur.
+
+6. Recupere title depuis formData.
+Pourquoi : extraction de la valeur saisie dans le champ name="title".
+
+7. Recupere description depuis formData.
+Pourquoi : extraction de la valeur saisie dans le champ name="description".
+
+8. Recupere et convertit price avec parseInt(..., 10).
+Pourquoi : Prisma attend un nombre, pas une chaine.
+
+9. Appelle await createProductInDb(title, description, price).
+Pourquoi : delegue l’ecriture base a la couche Prisma centralisee.
+
+10. Appelle redirect("/product-db").
+Pourquoi : renvoie l’utilisateur vers l’ecran de verification des donnees.
+
+11. Dans le JSX, la balise form contient action={createProductAction}.
+Pourquoi : connecte directement le submit HTML a la logique serveur.
+
+12. Les inputs ont les attributs name (title, description, price).
+Pourquoi : ces noms servent de cles pour formData.get(...).
+
+### Pourquoi ce mode serveur est important
+
+- Moins de code client :
+Pas besoin de fetch manuel, gestion JSON, ni endpoint intermediaire obligatoire.
+
+- Plus securise par defaut :
+La logique de creation reste sur le serveur, hors du navigateur.
+
+- Plus simple a maintenir :
+Le formulaire, la validation et l’action restent proches dans le meme fichier de page.
+
+- Compatible avec l’architecture Next App Router moderne :
+Server Actions sont une approche idiomatique pour les operations d’ecriture.
+
+Note importante :
+Dans ce flux precis, [app/react-form/api/route.ts](app/react-form/api/route.ts) n’est pas utilise. Cette route reste valable pour une approche API classique, mais la page [app/product-create-db/page.tsx](app/product-create-db/page.tsx) passe par Server Action.

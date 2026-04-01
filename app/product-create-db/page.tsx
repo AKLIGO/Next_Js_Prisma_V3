@@ -1,6 +1,6 @@
 
 import { createProduct as createProductInDb } from "../prisma-db";
-
+import { submitProduct as SubmitProduct } from "@/component/submit";
 import {redirect} from "next/navigation";
 
 export default function AddProductPage(){
@@ -62,13 +62,7 @@ export default function AddProductPage(){
                     </label>
                 </div>
 
-                <button
-                    type="submit"
-                    
-                    className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-cyan-600 px-4 py-3 font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:bg-cyan-300"
-                >
-                    Create Product
-                </button>
+                <SubmitProduct />
             </form>
         </main>
     );
